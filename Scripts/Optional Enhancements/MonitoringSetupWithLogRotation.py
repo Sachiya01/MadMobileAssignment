@@ -13,12 +13,12 @@ import json
 CHECK_INTERVAL = 10  # Seconds between metric checks
 CLOUDWATCH_NAMESPACE = "CustomMetrics"  # CloudWatch namespace for custom metrics
 INSTANCE_ID = "i-0d02b46bae51d830d"  # Replace with the instance ID of the monitored EC2
-PING_HOST = "8.8.8.8"  # Host to ping for latency measurement
-SMTP_SERVER = "smtp.gmail.com"  # Use your email provider's SMTP server
+PING_HOST = "8.8.8.8"  # Host to ping for latency measurement ( I'm using the primary DNS server for Google DNS for testing purposes)
+SMTP_SERVER = "smtp.gmail.com"  # gmail smtp server
 SMTP_PORT = 587
-EMAIL_ADDRESS = "sachithliyanage07@gmail.com"  # Replace with your email address
-EMAIL_PASSWORD = "eoyq gxrc jbcd raza"  # Replace with your email password
-ALERT_RECIPIENT = "sachithliyanage07+1@gmail.com"  # Replace with recipient's email address
+EMAIL_ADDRESS = "sachithliyanage07@gmail.com"  
+EMAIL_PASSWORD = "eoyq gxrc jbcd raza"  # Have to add a app-specific password
+ALERT_RECIPIENT = "sachithliyanage07+1@gmail.com"  
 # Define thresholds for performance metrics
 THRESHOLDS = {
     "cpu": 75,
@@ -27,7 +27,7 @@ THRESHOLDS = {
     "network_latency": 100  # Network latency threshold in milliseconds
 }
 
-# Path to the stop file
+# I created a stop file for emergency stop cases
 STOP_FILE = "stop.flag"
 
 # Initialize AWS clients
@@ -43,8 +43,8 @@ def send_email_alert(subject, message):
         msg["To"] = ALERT_RECIPIENT
         msg["Subject"] = subject
 
-        # Add message body
-        msg.attach(MIMEText(message, "plain"))
+       
+        msg.attach(MIMEText(message, "I'm adding an example body"))
 
         # Connect to the SMTP server and send the email
         with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
@@ -59,21 +59,20 @@ def send_email_alert(subject, message):
 
 def log_metrics():    
 
-        # Capture current system performance metrics
+
     data = {
             "cpu_usage": psutil.cpu_percent(),
             "memory_usage": psutil.virtual_memory().percent,
             "disk_usage": psutil.disk_usage('/').percent,
-            # "network_latency": measure_latency(host),
+           
             "timestamp": time.time()
         }
         
-        # Write metrics to a log file
+         # This is where I scripted to log files into a json called system_metrics
     with open("system_metrics.json", "a") as log_file:
             json.dump(data, log_file)
             log_file.write("\n")
         
-        # Check for threshold violations and trigger alerts
     if data["cpu_usage"] > THRESHOLDS["cpu"]:
             send_email_alert(
                 "CPU Usage Alert",
@@ -89,13 +88,7 @@ def log_metrics():
                 "Disk Usage Alert",
                 f"Disk usage has exceeded the threshold! Current usage: {data['disk_usage']}%"
             )
-    # if data["network_latency"] > THRESHOLDS["network_latency"]:
-            # send_email_alert(
-            #     "Network Latency Alert",
-            #     f"Network latency has exceeded the threshold! Current latency: {data['network_latency']} ms"
-            # )
-        
-        # Adjust the monitoring interval as needed
+    
     time.sleep(10)
 
 def publish_metric_to_cloudwatch(metric_name, value, unit="Percent"):
@@ -133,16 +126,15 @@ def monitor_system():
 def measure_latency(host):
     """Measure network latency to a specified host using the ping command on Windows."""
     try:
-        # Run the ping command
+
         result = subprocess.run(
-            ["ping", "-n", "1", "-w", "1000", host],  # Adjusted for Windows
+            ["ping", "-n", "1", "-w", "1000", host],  # Adjusted for Windows. For Linux I can use -c
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             text=True
         )
-        # Parse the latency value from the output
         for line in result.stdout.splitlines():
-            if "time=" in line:  # Look for the time in the response
+            if "time=" in line:  
                 latency = float(line.split("time=")[1].split("ms")[0].strip())
                 return latency
     except Exception as e:

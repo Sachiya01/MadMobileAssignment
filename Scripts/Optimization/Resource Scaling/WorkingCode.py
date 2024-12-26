@@ -2,11 +2,11 @@ import boto3
 from datetime import datetime, timedelta, timezone
 import time
 
-# Initialize Boto3 clients
+# Initialize Boto3 clients which are the AWS SDK for python
 cloudwatch = boto3.client('cloudwatch')
 autoscaling = boto3.client('autoscaling')
 
-# Function to fetch average CPU utilization
+# Function to get average CPU utilization
 def get_cpu_utilization(instance_id):
     StartTime = datetime.now(timezone.utc) - timedelta(minutes=1)
     EndTime = datetime.now(timezone.utc)
@@ -30,7 +30,7 @@ def get_cpu_utilization(instance_id):
     
     return data_points[0]['Average']
 
-# Function to adjust Auto Scaling Group capacity
+# Adjusts ASG capacity based on predetermined metrics
 def scale_autoscaling_group(asg_name, desired_capacity):
     response = autoscaling.describe_auto_scaling_groups(AutoScalingGroupNames=[asg_name])
     asg = response['AutoScalingGroups'][0]
@@ -48,14 +48,13 @@ def scale_autoscaling_group(asg_name, desired_capacity):
     )
     print(f"Scaling action performed: New desired capacity = {desired_capacity}")
 
-# Function to monitor and scale based on CPU utilization
+# Scales insatnces based on CPU utilization
 def monitor_and_scale(asg_name, instance_ids, cpu_threshold, scale_out_increment=1, scale_in_decrement=1):
     while True:
         try:
             average_cpu = 0
             instance_count = len(instance_ids)
             
-            # Fetch CPU metrics for all instances
             for instance_id in instance_ids:
                 cpu = get_cpu_utilization(instance_id)
                 if cpu is not None:
@@ -65,22 +64,20 @@ def monitor_and_scale(asg_name, instance_ids, cpu_threshold, scale_out_increment
 
             print(f"Average CPU Utilization: {average_cpu}%")
             
-            # Fetch current desired capacity
             asg_response = autoscaling.describe_auto_scaling_groups(AutoScalingGroupNames=[asg_name])
             asg = asg_response['AutoScalingGroups'][0]
             current_capacity = asg['DesiredCapacity']
             min_size = asg['MinSize']
             max_size = asg['MaxSize']
 
-            # Log ASG details
             print(f"Current Desired Capacity: {current_capacity}, MinSize: {min_size}, MaxSize: {max_size}")
 
-            # Scale out
+            # Scale out (Increase capacity)
             if average_cpu > cpu_threshold and current_capacity + scale_out_increment <= max_size:
                 print(f"Scaling out: Increasing capacity by {scale_out_increment}.")
                 scale_autoscaling_group(asg_name, current_capacity + scale_out_increment)
 
-            # Scale in
+            # Scale in (Decrease capacity)
             elif average_cpu < cpu_threshold and current_capacity - scale_in_decrement >= min_size:
                 print(f"Scaling in: Decreasing capacity by {scale_in_decrement}.")
                 scale_autoscaling_group(asg_name, current_capacity - scale_in_decrement)
@@ -90,13 +87,12 @@ def monitor_and_scale(asg_name, instance_ids, cpu_threshold, scale_out_increment
         except Exception as e:
             print(f"An error occurred: {e}")
 
-        # Wait for 10 seconds before checking again
+       
         time.sleep(10)
 
-# Example usage
 if __name__ == "__main__":
     AUTO_SCALING_GROUP_NAME = "Group1"
-    INSTANCE_IDS = ["i-0df7fe96cdde60771"]  # Only one instance CHANGE WHENEVER THE STRESS TEST IS OVER SINCE INSTANCE SOMETIMES GETS TERMINATED
+    INSTANCE_IDS = ["i-0df7fe96cdde60771"]  # Only one instance, CHANGEs WHENEVER THE STRESS TEST IS OVER SINCE INSTANCE SOMETIMES GETS TERMINATED. Therefore the instance has to be replaced every time this exact instance is terminated
     CPU_THRESHOLD = 60  # CPU threshold in percentage
 
     monitor_and_scale(AUTO_SCALING_GROUP_NAME, INSTANCE_IDS, CPU_THRESHOLD)
