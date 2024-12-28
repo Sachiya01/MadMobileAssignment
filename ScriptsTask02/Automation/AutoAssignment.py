@@ -3,7 +3,7 @@ import base64
 
 # Jira API credentials
 JIRA_URL = "https://sachithliyanage01.atlassian.net"
-API_TOKEN = "ATATT3xFfGF0x3c6LxphWJWL8rgsRrb7y-DoMBQbN9Vr8eIeekCe-W2ye58yRfDDku4PY2pCrM7EzqYdgeJZzFGNb67H9jBIjzb1Vmsg3doHdEnih7FzHJN7QLULqTF7rEQCc560hkR2rmV9BqxfX0sexmSMj6NUWPP8XTgun3m_T2qd6rN2FTU=CE2863FC"
+API_TOKEN = "ATATT3xFfGF0v2CHw_Bv3wUmZ17lCGRsceCl7Y2cqdiGd2u6SAcgZis4pgRqMfa_AQRPTSjxkZMbsmGUK7XcyHgihKrifF2RQybDU224JHkPGYXlAJXtTBnNFD6jTPnzwEJeZOoTgLBg_9y3K0MO_8OJqTXzP6KEMfrOjTYzu1dsszYm4YjSkjw=AD89BFAD"
 EMAIL = "sachithliyanage07@gmail.com"
 
 # Encode email and API token for Basic Authentication
